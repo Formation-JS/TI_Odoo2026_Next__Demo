@@ -1,7 +1,15 @@
 import { CountryDetail, CountryDetailResponseData, CountryListItem, CountryListResponseData } from '@/@types/country';
+import { connection } from 'next/server';
 
 export async function fetchCountryList(): Promise<CountryListItem[]> {
-    const url = 'https://api.restcountries.com/countries/v5?response_fields=names.common,codes.alpha_2,flag.emoji&pretty=1';
+    // Fake delay (NE PAS FAIRE EN PROD)
+    await (new Promise(resolve => setTimeout(resolve, 2_000)));
+
+    // Méthode pour forcer Next a refaire la requete (sinon, elle sera en cache en prod)
+    connection();
+
+    // Requete
+    const url = 'https://api.restcountries.com/countries/v5?region=Europe&limit=100&response_fields=names.common,codes.alpha_2,flag.emoji&pretty=1';
 
     const response = await fetch(url, {
         headers: {
@@ -23,8 +31,12 @@ export async function fetchCountryList(): Promise<CountryListItem[]> {
 }
 
 
-export async function fetchCountryByCode(code: string) : Promise<CountryDetail> {
-    const url = `https://api.restcountries.com/countries/v5?codes.alpha_2={code}&pretty=1`;
+export async function fetchCountryByCode(code: string) : Promise<CountryDetail | null> {
+    // Fake delay (NE PAS FAIRE EN PROD)
+    await (new Promise(resolve => setTimeout(resolve, 1_000)));
+
+    // Requete
+    const url = `https://api.restcountries.com/countries/v5?codes.alpha_2=${code}&pretty=1`;
 
     const response = await fetch(url, {
         headers: {
@@ -38,6 +50,8 @@ export async function fetchCountryByCode(code: string) : Promise<CountryDetail> 
 
     const { data } = await response.json() as CountryDetailResponseData;
     const country = data.objects[0];
+
+    if(!country) return null;
 
     // Mapping des données de la WebAPI
     return {
